@@ -123,7 +123,7 @@
     autocomplete="off"
     autocapitalize="off"
     spellcheck="false"
-/>
+  />
   <div id="results"></div>
   <div id="message"></div>
   <audio id="errorSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
@@ -133,6 +133,8 @@
     const inputBox = document.getElementById('inputBox');
     const keyIndicator = document.getElementById('key-indicator');
     const errorSound = document.getElementById('errorSound');
+    const results = document.getElementById('results');
+    const message = document.getElementById('message');
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     const keyPositions = {
       a: [100, 205], b: [250, 240], c: [185, 240], d: [165, 205], e: [160, 170],
@@ -143,6 +145,11 @@
       z: [118, 240]
     };
     let currentIndex = 0;
+    let startTime = Date.now();
+    let totalErrors = 0;
+    let errorCounts = {};
+    let bestTime = localStorage.getItem("bestTime") || null;
+    let attempts = parseInt(localStorage.getItem("attempts") || 0);
 
     function showTarget() {
       targetDisplay.innerHTML = alphabet.map((letter, i) => {
@@ -170,17 +177,50 @@
 
       if (lastChar === currentChar) {
         currentIndex++;
-        inputBox.value = value.slice(0, currentIndex); // 正しく入力された分だけ表示
+        inputBox.value = value.slice(0, currentIndex);
         showTarget();
       } else {
         errorSound.currentTime = 0;
         errorSound.play();
-        inputBox.value = value.slice(0, currentIndex); // ミスを元に戻す
+        inputBox.value = value.slice(0, currentIndex);
+        totalErrors++;
+        errorCounts[currentChar] = (errorCounts[currentChar] || 0) + 1;
       }
 
       if (currentIndex >= alphabet.length) {
         inputBox.disabled = true;
         keyIndicator.style.display = 'none';
+        const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+        attempts++;
+        localStorage.setItem("attempts", attempts);
+
+        const isNewBest = !bestTime || timeTaken < bestTime;
+        let praise = "";
+        let encouragement = "";
+
+        if (totalErrors === 0 && isNewBest) {
+          praise = "🌟すごい！ミスなしで自己ベスト更新！完璧です！🌟";
+        } else if (totalErrors === 0) {
+          praise = "💮ミスなし！すごく正確！💮";
+        } else if (isNewBest) {
+          praise = "⏱最短記録更新！スピードがどんどん上がってるよ！✨";
+        } else {
+          encouragement = totalErrors > 5 ? "大丈夫、ゆっくり確実に進もう！続ければ必ず上達します💪" : "あとちょっと！次はもっと良くなるよ😊";
+        }
+
+        if (isNewBest) {
+          bestTime = timeTaken;
+          localStorage.setItem("bestTime", bestTime);
+        }
+
+        const errorReport = Object.entries(errorCounts)
+          .sort((a, b) => b[1] - a[1])
+          .filter(entry => entry[1] > 0)
+          .map(entry => `${entry[0]}：${entry[1]}ミス`)
+          .join("<br>") || "ミスはありません！";
+
+        results.innerHTML = `✅ 完了！<br>⏱ 所要時間：${timeTaken} 秒<br>✨ 最短時間：${bestTime} 秒<br>💥 ミスしたキー：<br>${errorReport}<br>今日は ${attempts} 回チャレンジしたよ！`;
+        message.innerHTML = praise || encouragement;
       }
     });
 
