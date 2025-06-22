@@ -130,6 +130,7 @@
   <div id="history"></div>
   <script>
     const targetDisplay = document.getElementById('targetDisplay');
+    const inputBox = document.getElementById('inputBox');
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     let currentIndex = 0;
 
@@ -138,6 +139,17 @@
         return i === currentIndex ? `<span id="highlight">${letter}</span>` : letter;
       }).join('');
     }
+
+    inputBox.addEventListener('input', () => {
+      const value = inputBox.value.toUpperCase();
+      if (value[currentIndex] === alphabet[currentIndex]) {
+        currentIndex++;
+        showTarget();
+      }
+      if (currentIndex >= alphabet.length) {
+        inputBox.disabled = true;
+      }
+    });
 
     showTarget();
   </script>
