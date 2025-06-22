@@ -128,5 +128,18 @@
   <div id="message"></div>
   <audio id="errorSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
   <div id="history"></div>
+  <script>
+    const targetDisplay = document.getElementById('targetDisplay');
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    let currentIndex = 0;
+
+    function showTarget() {
+      targetDisplay.innerHTML = alphabet.map((letter, i) => {
+        return i === currentIndex ? `<span id="highlight">${letter}</span>` : letter;
+      }).join('');
+    }
+
+    showTarget();
+  </script>
 </body>
 </html>
