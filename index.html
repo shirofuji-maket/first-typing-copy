@@ -132,6 +132,7 @@
     const targetDisplay = document.getElementById('targetDisplay');
     const inputBox = document.getElementById('inputBox');
     const keyIndicator = document.getElementById('key-indicator');
+    const errorSound = document.getElementById('errorSound');
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     const keyPositions = {
       a: [100, 205], b: [250, 240], c: [185, 240], d: [165, 205], e: [160, 170],
@@ -164,10 +165,19 @@
 
     inputBox.addEventListener('input', () => {
       const value = inputBox.value.toUpperCase();
-      if (value[currentIndex] === alphabet[currentIndex]) {
+      const currentChar = alphabet[currentIndex];
+      const lastChar = value[value.length - 1];
+
+      if (lastChar === currentChar) {
         currentIndex++;
+        inputBox.value = value.slice(0, currentIndex); // 正しく入力された分だけ表示
         showTarget();
+      } else {
+        errorSound.currentTime = 0;
+        errorSound.play();
+        inputBox.value = value.slice(0, currentIndex); // ミスを元に戻す
       }
+
       if (currentIndex >= alphabet.length) {
         inputBox.disabled = true;
         keyIndicator.style.display = 'none';
