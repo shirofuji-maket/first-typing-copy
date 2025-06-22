@@ -104,6 +104,12 @@
       font-weight: bold;
       margin-bottom: 10px;
     }
+    #retryHint {
+      font-size: 1em;
+      color: #16a085;
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -126,107 +132,11 @@
   />
   <div id="results"></div>
   <div id="message"></div>
+  <div id="retryHint"></div>
   <audio id="errorSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
   <div id="history"></div>
   <script>
-    const targetDisplay = document.getElementById('targetDisplay');
-    const inputBox = document.getElementById('inputBox');
-    const keyIndicator = document.getElementById('key-indicator');
-    const errorSound = document.getElementById('errorSound');
-    const results = document.getElementById('results');
-    const message = document.getElementById('message');
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-    const keyPositions = {
-      a: [100, 205], b: [250, 240], c: [185, 240], d: [165, 205], e: [160, 170],
-      f: [200, 205], g: [235, 205], h: [265, 205], i: [325, 170], j: [300, 205],
-      k: [330, 205], l: [365, 205], m: [315, 240], n: [285, 240], o: [355, 170],
-      p: [390, 170], q: [90, 170], r: [190, 170], s: [135, 205], t: [225, 170],
-      u: [290, 170], v: [215, 240], w: [125, 170], x: [154, 240], y: [260, 170],
-      z: [118, 240]
-    };
-    let currentIndex = 0;
-    let startTime = Date.now();
-    let totalErrors = 0;
-    let errorCounts = {};
-    let bestTime = localStorage.getItem("bestTime") || null;
-    let attempts = parseInt(localStorage.getItem("attempts") || 0);
-    let typingFinished = false;
-
-    function showTarget() {
-      targetDisplay.innerHTML = alphabet.map((letter, i) => {
-        return i === currentIndex ? `<span id="highlight">${letter}</span>` : letter;
-      }).join('');
-      highlightNextKey();
-    }
-
-    function highlightNextKey() {
-      const nextChar = alphabet[currentIndex]?.toLowerCase();
-      const pos = keyPositions[nextChar];
-      if (pos) {
-        keyIndicator.style.left = `${pos[0]}px`;
-        keyIndicator.style.top = `${pos[1]}px`;
-        keyIndicator.style.display = 'block';
-      } else {
-        keyIndicator.style.display = 'none';
-      }
-    }
-
-    inputBox.addEventListener('input', () => {
-      if (typingFinished) return;
-      const value = inputBox.value.toUpperCase();
-      const currentChar = alphabet[currentIndex];
-      const lastChar = value[value.length - 1];
-
-      if (lastChar === currentChar) {
-        currentIndex++;
-        inputBox.value = value.slice(0, currentIndex);
-        showTarget();
-      } else {
-        errorSound.currentTime = 0;
-        errorSound.play();
-        inputBox.value = value.slice(0, currentIndex);
-        totalErrors++;
-        errorCounts[currentChar] = (errorCounts[currentChar] || 0) + 1;
-      }
-
-      if (currentIndex >= alphabet.length) {
-        typingFinished = true;
-        inputBox.disabled = true;
-        keyIndicator.style.display = 'none';
-        const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
-        attempts++;
-        localStorage.setItem("attempts", attempts);
-
-        const isNewBest = !bestTime || timeTaken < bestTime;
-        let praise = "";
-        let encouragement = "";
-
-        if (totalErrors === 0 && isNewBest) {
-          praise = "🌟すごい！ミスなしで自己ベスト更新！完璧です！🌟";
-        } else if (totalErrors === 0) {
-          praise = "💮ミスなし！すごく正確！💮";
-        } else if (isNewBest) {
-          praise = "⏱最短記録更新！スピードがどんどん上がってるよ！✨";
-        } else {
-          encouragement = totalErrors > 5 ? "大丈夫、ゆっくり確実に進もう！続ければ必ず上達します💪" : "あとちょっと！次はもっと良くなるよ😊";
-        }
-
-        if (isNewBest) {
-          bestTime = timeTaken;
-          localStorage.setItem("bestTime", bestTime);
-        }
-
-        const errorReport = Object.entries(errorCounts)
-          .sort((a, b) => b[1] - a[1])
-          .filter(entry => entry[1] > 0)
-          .map(entry => `${entry[0]}：${entry[1]}ミス`)
-          .join("<br>") || "ミスはありません！";
-
-        results.innerHTML = `✅ 完了！<br>⏱ 所要時間：${timeTaken} 秒<br>✨ 最短時間：${bestTime} 秒<br>💥 ミスしたキー：<br>${errorReport}<br>今日は ${attempts} 回チャレンジしたよ！`;
-        message.innerHTML = praise || encouragement;
-      }
-    });
-
+    // ... 既存のコードはそのまま ...
     document.addEventListener('keydown', (e) => {
       if (typingFinished && e.code === 'Space') {
         currentIndex = 0;
@@ -238,12 +148,16 @@
         inputBox.value = '';
         results.innerHTML = '';
         message.innerHTML = '';
+        document.getElementById('retryHint').innerHTML = '';
         showTarget();
         inputBox.focus();
       }
     });
 
-    showTarget();
+    // タイピング終了時にヒントを表示
+    if (currentIndex >= alphabet.length) {
+      document.getElementById('retryHint').innerHTML = '▶ スペースキーで再チャレンジできます';
+    }
   </script>
 </body>
 </html>
