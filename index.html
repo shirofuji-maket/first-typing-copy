@@ -70,7 +70,7 @@
     .error {
       background-color: #ffcccc;
     }
-      #targetDisplay {
+    #targetDisplay {
       font-size: clamp(1.2em, 3vw, 2.5em);
       margin: 30px auto;
       letter-spacing: 0.35em;
@@ -83,7 +83,7 @@
       display: flex;
       justify-content: center;
     }
-      #history {
+    #history {
       position: fixed;
       top: 100px;
       right: 20px;
@@ -98,10 +98,17 @@
       color: #2e3b30;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    #notice {
+      font-size: 1em;
+      color: #c0392b;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>A〜Z タイピング練習</h1>
+  <div id="notice">※ 英数入力・半角モードで入力してください ※</div>
   <div id="keyboard-wrapper">
     <img id="keyboard-image" src="keyboard-image.png" alt="キーボード図">
     <div id="key-indicator"></div>
@@ -120,144 +127,6 @@
   <div id="results"></div>
   <div id="message"></div>
   <audio id="errorSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
-
-  <script>
-    const target = "abcdefghijklmnopqrstuvwxyz";
-    const inputBox = document.getElementById("inputBox");
-    const results = document.getElementById("results");
-    const message = document.getElementById("message");
-    const errorSound = document.getElementById("errorSound");
-    const targetDisplay = document.getElementById("targetDisplay");
-    const keyIndicator = document.getElementById("key-indicator");
-
-    let startTime = null;
-    let attempts = localStorage.getItem("typingAttempts") || 0;
-    let bestTime = localStorage.getItem("bestTime") || null;
-    let errorCounts = {};
-    for (let c of target) errorCounts[c] = 0;
-
-    results.innerHTML = `今日は ${attempts} 回チャレンジしたよ！<br>` + (bestTime ? `✨ 最短時間：${bestTime} 秒` : "まだ記録はありません");
-
-    const keyPositions = {
-      a: [100, 205], b: [250, 240], c: [185, 240], d: [165, 205], e: [160, 170],
-      f: [200, 205], g: [235, 205], h: [265, 205], i: [325, 170], j: [300, 205],
-      k: [330, 205], l: [365, 205], m: [315, 240], n: [285, 240], o: [355, 170],
-      p: [390, 170], q: [90, 170], r: [190, 170], s: [135, 205], t: [225, 170],
-      u: [290, 170], v: [215, 240], w: [125, 170], x: [154, 240], y: [260, 170],
-      z: [118, 240]
-    };
-
-    function updateTargetDisplay(currentLength) {
-      let html = "";
-      for (let i = 0; i < target.length; i++) {
-        if (i === currentLength) {
-          html += `<span id='highlight'>${target[i]}</span>`;
-        } else {
-          html += target[i];
-        }
-      }
-      targetDisplay.innerHTML = html;
-      updateKeyIndicator(target[currentLength]);
-    }
-
-    function updateKeyIndicator(letter) {
-      const pos = keyPositions[letter];
-      if (pos) {
-        keyIndicator.style.left = pos[0] + "px";
-        keyIndicator.style.top = pos[1] + "px";
-      } else {
-        keyIndicator.style.left = "-9999px";
-        keyIndicator.style.top = "-9999px";
-      }
-    }
-
-    updateTargetDisplay(0);
-
-    
-
-    inputBox.addEventListener("input", function () {
-      const input = inputBox.value;
-
-      if (input.length === 1 && !startTime) {
-        startTime = new Date();
-      }
-
-      let incorrect = false;
-      for (let i = 0; i < input.length; i++) {
-        if (input[i] !== target[i]) {
-          errorCounts[target[i]]++;
-          incorrect = true;
-          inputBox.classList.add("error");
-          errorSound.play();
-          break;
-        }
-      }
-
-      if (incorrect) {
-        inputBox.value = input.slice(0, input.length - 1);
-        updateTargetDisplay(input.length - 1);
-        return;
-      } else {
-        inputBox.classList.remove("error");
-        updateTargetDisplay(input.length);
-      }
-
-      if (input === target) {
-        const endTime = new Date();
-        const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-        attempts++;
-        localStorage.setItem("typingAttempts", attempts);
-
-        let praise = "";
-        let encouragement = "";
-        let isNewBest = !bestTime || parseFloat(timeTaken) < parseFloat(bestTime);
-        let totalErrors = Object.values(errorCounts).reduce((a, b) => a + b, 0);
-
-        if (totalErrors === 0 && isNewBest) {
-          praise = "🌟すごい！ミスなしで自己ベスト更新！完璧です！🌟";
-        } else if (totalErrors === 0) {
-          praise = "💮ミスなし！すごく正確！💮";
-        } else if (isNewBest) {
-          praise = "⏱最短記録更新！スピードがどんどん上がってるよ！✨";
-        } else {
-          encouragement = totalErrors > 5 ? "大丈夫、ゆっくり確実に進もう！続ければ必ず上達します💪" : "あとちょっと！次はもっと良くなるよ😊";
-        }
-
-        if (isNewBest) {
-          bestTime = timeTaken;
-          localStorage.setItem("bestTime", bestTime);
-        }
-
-        const errorReport = Object.entries(errorCounts)
-          .sort((a, b) => b[1] - a[1])
-          .filter(entry => entry[1] > 0)
-          .map(entry => `${entry[0]}：${entry[1]}ミス`)
-          .join("<br>") || "ミスはありません！";
-
-        results.innerHTML = `✅ 完了！<br>⏱ 所要時間：${timeTaken} 秒<br>✨ 最短時間：${bestTime} 秒<br>💥 ミスしたキー：<br>${errorReport}<br>今日は ${attempts} 回チャレンジしたよ！`;
-
-        message.innerHTML = praise || encouragement;
-
-        inputBox.value = "";
-        startTime = null;
-        updateTargetDisplay(0);
-        for (let c of target) errorCounts[c] = 0;
-
-        // 履歴更新
-        let record = {
-          time: timeTaken,
-          date: new Date().toLocaleString()
-        };
-        let history = JSON.parse(localStorage.getItem("typingHistory") || "[]");
-        history.unshift(record);
-        if (history.length > 30) history = history.slice(0, 30);
-        localStorage.setItem("typingHistory", JSON.stringify(history));
-        const historyHtml = history.map((rec, i) => `${i + 1}. ${rec.date}：${rec.time} 秒`).join("<br>");
-        document.getElementById("history").innerHTML = `<h3>📋 過去の記録</h3>${historyHtml}`;
-        for (let c of target) errorCounts[c] = 0;
-      }
-    });
-  </script>
   <div id="history"></div>
 </body>
 </html>
