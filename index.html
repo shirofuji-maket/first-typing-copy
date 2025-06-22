@@ -221,27 +221,10 @@
 
         results.innerHTML = `✅ 完了！<br>⏱ 所要時間：${timeTaken} 秒<br>✨ 最短時間：${bestTime} 秒<br>💥 ミスしたキー：<br>${errorReport}<br>今日は ${attempts} 回チャレンジしたよ！`;
         message.innerHTML = praise || encouragement;
-   
-        inputBox.value = "";
-        startTime = null;
-        updateTargetDisplay(0);
-        for (let c of target) errorCounts[c] = 0;
-
-        // 履歴更新
-        let record = {
-          time: timeTaken,
-          date: new Date().toLocaleString()
-        };
-        let history = JSON.parse(localStorage.getItem("typingHistory") || "[]");
-        history.unshift(record);
-        if (history.length > 30) history = history.slice(0, 30);
-        localStorage.setItem("typingHistory", JSON.stringify(history));
-        const historyHtml = history.map((rec, i) => `${i + 1}. ${rec.date}：${rec.time} 秒`).join("<br>");
-        document.getElementById("history").innerHTML = `<h3>📋 過去の記録</h3>${historyHtml}`;
-        for (let c of target) errorCounts[c] = 0;
       }
     });
+
+    showTarget();
   </script>
-  <div id="history"></div>
 </body>
 </html>
