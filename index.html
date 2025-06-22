@@ -227,13 +227,16 @@
         const errorReport = Object.entries(errorCounts)
           .sort((a, b) => b[1] - a[1])
           .filter(entry => entry[1] > 0)
-          .map(entry => `${entry[0]}：${entry[1]}ミス`)
-          .join("<br>") || "ミスはありません！";
+          .map(([key, count]) => {
+            let stars = '★'.repeat(Math.min(3, count));
+            return `${stars}${key}`;
+          })
+          .join('　') || "苦手なキーはありません！";
 
         results.innerHTML = `
           <div class="result-item">⏱ <strong>所要時間：</strong>${timeTaken} 秒</div>
           <div class="result-item">✨ <strong>最短時間：</strong>${bestTime} 秒</div>
-          <div class="result-item">💥 <strong>ミスしたキー：</strong><br>${errorReport}</div>
+          <div class="result-item">💥 <strong>苦手なキー：</strong><br>${errorReport}</div>
           <div class="result-item">📊 <strong>チャレンジ回数：</strong>${attempts} 回</div>`;
         message.innerHTML = praise || encouragement;
         retryPrompt.innerHTML = "▶ スペースキーで再チャレンジできます";
