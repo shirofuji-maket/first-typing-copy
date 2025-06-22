@@ -150,6 +150,7 @@
     let errorCounts = {};
     let bestTime = localStorage.getItem("bestTime") || null;
     let attempts = parseInt(localStorage.getItem("attempts") || 0);
+    let typingFinished = false;
 
     function showTarget() {
       targetDisplay.innerHTML = alphabet.map((letter, i) => {
@@ -171,6 +172,7 @@
     }
 
     inputBox.addEventListener('input', () => {
+      if (typingFinished) return;
       const value = inputBox.value.toUpperCase();
       const currentChar = alphabet[currentIndex];
       const lastChar = value[value.length - 1];
@@ -188,6 +190,7 @@
       }
 
       if (currentIndex >= alphabet.length) {
+        typingFinished = true;
         inputBox.disabled = true;
         keyIndicator.style.display = 'none';
         const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -221,6 +224,22 @@
 
         results.innerHTML = `✅ 完了！<br>⏱ 所要時間：${timeTaken} 秒<br>✨ 最短時間：${bestTime} 秒<br>💥 ミスしたキー：<br>${errorReport}<br>今日は ${attempts} 回チャレンジしたよ！`;
         message.innerHTML = praise || encouragement;
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (typingFinished && e.code === 'Space') {
+        currentIndex = 0;
+        totalErrors = 0;
+        errorCounts = {};
+        startTime = Date.now();
+        typingFinished = false;
+        inputBox.disabled = false;
+        inputBox.value = '';
+        results.innerHTML = '';
+        message.innerHTML = '';
+        showTarget();
+        inputBox.focus();
       }
     });
 
